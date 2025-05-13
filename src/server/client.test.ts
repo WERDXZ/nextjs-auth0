@@ -117,6 +117,91 @@ describe("Auth0Client", () => {
     });
   });
 
+  describe("Cross-Subdomain Support", () => {
+    beforeEach(() => {
+      // Set required env vars
+      process.env[ENV_VARS.DOMAIN] = "test.auth0.com";
+      process.env[ENV_VARS.CLIENT_ID] = "test-client-id";
+      process.env[ENV_VARS.CLIENT_SECRET] = "test-client-secret";
+      process.env[ENV_VARS.SECRET] = "a-very-long-secret-of-at-least-32-chars";
+    });
+
+    it("should automatically set cookie domain for subdomains", () => {
+      // Create client with subdomain URL
+      const client = new Auth0Client({
+        appBaseUrl: "https://app.example.com"
+      });
+
+      // Get private session store to inspect cookie config
+      const sessionStore = (client as any).sessionStore;
+      const transactionStore = (client as any).transactionStore;
+
+      // Check that the domain is set to the root domain with leading dot
+      expect(sessionStore.cookieConfig.domain).toBe(".example.com");
+      expect(transactionStore.cookieConfig.domain).toBe(".example.com");
+    });
+
+    it("should not set cookie domain for localhost", () => {
+      // Create client with localhost URL
+      const client = new Auth0Client({
+        appBaseUrl: "http://localhost:3000"
+      });
+
+      // Get private session store to inspect cookie config
+      const sessionStore = (client as any).sessionStore;
+
+      // Should not set domain for localhost
+      expect(sessionStore.cookieConfig.domain).toBeUndefined();
+    });
+
+    it("should respect explicitly configured domain", () => {
+      // Create client with explicit domain config
+      const client = new Auth0Client({
+        appBaseUrl: "https://app.example.com",
+        session: {
+          cookie: {
+            domain: ".custom.domain.com"
+          }
+        }
+      });
+
+      // Get private session store to inspect cookie config
+      const sessionStore = (client as any).sessionStore;
+
+      // Should use the explicitly configured domain
+      expect(sessionStore.cookieConfig.domain).toBe(".custom.domain.com");
+    });
+
+    it("should respect domain from environment variable", () => {
+      // Set environment variable for domain
+      process.env.AUTH0_COOKIE_DOMAIN = ".env-domain.com";
+
+      // Create client
+      const client = new Auth0Client({
+        appBaseUrl: "https://app.example.com"
+      });
+
+      // Get private session store to inspect cookie config
+      const sessionStore = (client as any).sessionStore;
+
+      // Should use the domain from env var
+      expect(sessionStore.cookieConfig.domain).toBe(".env-domain.com");
+    });
+
+    it("should not set domain for top-level domains", () => {
+      // Create client with top-level domain URL
+      const client = new Auth0Client({
+        appBaseUrl: "https://example.com"
+      });
+
+      // Get private session store to inspect cookie config
+      const sessionStore = (client as any).sessionStore;
+
+      // Should not set domain for top-level domain
+      expect(sessionStore.cookieConfig.domain).toBeUndefined();
+    });
+  });
+
   describe("getAccessToken", () => {
     const mockSession: SessionData = {
       user: { sub: "user123" },

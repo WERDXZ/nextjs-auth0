@@ -195,6 +195,26 @@ export class Auth0Client {
       options.clientAssertionSigningAlg ||
       process.env.AUTH0_CLIENT_ASSERTION_SIGNING_ALG;
 
+    // Extract root domain from appBaseUrl if there is no explicitly configured domain
+    let cookieDomain = options.session?.cookie?.domain ?? process.env.AUTH0_COOKIE_DOMAIN;
+
+    // If no cookie domain is set and appBaseUrl is provided, try to infer a root domain
+    if (!cookieDomain && appBaseUrl) {
+      try {
+        const { hostname } = new URL(appBaseUrl);
+        // Check if it's a subdomain (has at least 2 dots)
+        const parts = hostname.split('.');
+        if (parts.length > 2 && !hostname.match(/^(localhost|127\.0\.0\.1|\[::1\])$/)) {
+          // Get the root domain (e.g., example.com from subdomain.example.com)
+          // Adding the dot prefix to make it work across all subdomains
+          const rootDomain = `.${parts.slice(-2).join('.')}`;
+          cookieDomain = rootDomain;
+        }
+      } catch (e) {
+        // Ignore URL parsing errors
+      }
+    }
+
     const sessionCookieOptions: SessionCookieOptions = {
       name: options.session?.cookie?.name ?? "__session",
       secure:
@@ -209,14 +229,15 @@ export class Auth0Client {
       transient:
         options.session?.cookie?.transient ??
         process.env.AUTH0_COOKIE_TRANSIENT === "true",
-      domain: options.session?.cookie?.domain ?? process.env.AUTH0_COOKIE_DOMAIN
+      domain: cookieDomain
     };
 
     const transactionCookieOptions: TransactionCookieOptions = {
       prefix: options.transactionCookie?.prefix ?? "__txn_",
       secure: options.transactionCookie?.secure ?? false,
       sameSite: options.transactionCookie?.sameSite ?? "lax",
-      path: options.transactionCookie?.path ?? "/"
+      path: options.transactionCookie?.path ?? "/",
+      domain: cookieDomain // Use the same domain as the session cookie
     };
 
     if (appBaseUrl) {

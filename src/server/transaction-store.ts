@@ -36,6 +36,13 @@ export interface TransactionCookieOptions {
    * The path attribute of the transaction cookie. Will be set to '/' by default.
    */
   path?: string;
+  /**
+   * Specifies the value for the {@link https://tools.ietf.org/html/rfc6265#section-5.2.3|Domain Set-Cookie attribute}. By default, no
+   * domain is set, and most clients will consider the cookie to apply to only
+   * the current domain. To enable cookie sharing across subdomains, set this to
+   * a parent domain with a leading dot (e.g., `.example.com`).
+   */
+  domain?: string;
 }
 
 export interface TransactionStoreOptions {
@@ -62,6 +69,7 @@ export class TransactionStore {
       sameSite: cookieOptions?.sameSite ?? "lax", // required to allow the cookie to be sent on the callback request
       secure: cookieOptions?.secure ?? false,
       path: cookieOptions?.path ?? "/",
+      domain: cookieOptions?.domain,
       maxAge: 60 * 60 // 1 hour in seconds
     };
   }

@@ -1,5 +1,10 @@
 # Change Log
 
+## [Unreleased]
+
+**Added**
+- feat: Automatic cross-subdomain cookie support
+
 ## [v4.5.1](https://github.com/auth0/nextjs-auth0/tree/v4.5.1) (2025-04-29)
 [Full Changelog](https://github.com/auth0/nextjs-auth0/compare/v4.5.0...v4.5.1)
 

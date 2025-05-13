@@ -690,6 +690,16 @@ export const auth0 = new Auth0Client({
 
 You can configure the session cookie attributes either through environment variables or directly in the SDK initialization.
 
+### Cross-Subdomain Support
+
+The SDK now provides automatic cross-subdomain cookie support, allowing users to remain authenticated when navigating between different subdomains of the same parent domain (e.g., app.example.com and dashboard.example.com).
+
+When enabled, a user logging into one subdomain will be automatically logged in on all other subdomains of the same parent domain. This is achieved by setting the cookie domain to the parent domain (with a leading dot).
+
+**Automatic detection**: If your app is hosted on a subdomain (e.g., app.example.com) and no explicit cookie domain is set, the SDK will automatically set the cookie domain to the parent domain with a leading dot (e.g., `.example.com`).
+
+**Manual configuration**: You can explicitly set the cookie domain through environment variables or configuration options (see below).
+
 **1. Using Environment Variables:**
 
 Set the desired environment variables in your `.env.local` file or your deployment environment:
@@ -735,10 +745,13 @@ export const auth0 = new Auth0Client({
 **Session Cookie Options:**
 
 *   `domain` (String): Specifies the `Domain` attribute.
+    * To share cookies across subdomains (e.g., app.example.com and dashboard.example.com), set this to the root domain with a leading dot (e.g., `.example.com`).
+    * The SDK will automatically detect subdomain usage and set an appropriate domain value if none is provided and the `appBaseUrl` contains a subdomain.
 *   `path` (String): Specifies the `Path` attribute. Defaults to `/`.
 *   `transient` (Boolean): If `true`, the `maxAge` attribute is omitted, making it a session cookie. Defaults to `false`.
 *   `secure` (Boolean): Specifies the `Secure` attribute. Defaults to `false` (or `true` if `AUTH0_COOKIE_SECURE=true` is set).
 *   `sameSite` ('Lax' | 'Strict' | 'None'): Specifies the `SameSite` attribute. Defaults to `Lax` (or the value of `AUTH0_COOKIE_SAME_SITE`).
+    * When using cross-subdomain cookies with different protocols or ports, consider setting this to `None` (requires `secure: true`).
 *   `name` (String): The name of the session cookie. Defaults to `__session`.
 
 > [!INFO]

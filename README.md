@@ -156,7 +156,31 @@ AUTH0_COOKIE_TRANSIENT=
 AUTH0_COOKIE_SECURE=
 AUTH0_COOKIE_SAME_SITE=
 ```
-Respective counterparts are also available in the client configuration. See [Cookie Configuration](https://github.com/auth0/nextjs-auth0/blob/main/EXAMPLES.md#cookie-configuration) for more details.  
+Respective counterparts are also available in the client configuration. See [Cookie Configuration](https://github.com/auth0/nextjs-auth0/blob/main/EXAMPLES.md#cookie-configuration) for more details.
+
+### Cross-Subdomain Support
+When your application needs to share authentication state across multiple subdomains (e.g., app.example.com and dashboard.example.com), the SDK will automatically detect this scenario and set the cookie domain to the root domain (e.g., `.example.com`).
+
+This automatic detection occurs when:
+1. No explicit cookie domain is set via AUTH0_COOKIE_DOMAIN or configuration
+2. The appBaseUrl is a subdomain (has more than 2 parts in the domain name)
+
+You can always override this behavior by explicitly setting the cookie domain:
+```env
+AUTH0_COOKIE_DOMAIN='.example.com'
+```
+
+Or in your configuration:
+```ts
+export const auth0 = new Auth0Client({
+  session: {
+    cookie: {
+      domain: '.example.com',
+    }
+  }
+})
+```
+Note the leading dot (.) in the domain is important for cross-subdomain support.
 
 ## Configuration Validation
 
